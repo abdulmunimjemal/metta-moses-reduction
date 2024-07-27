@@ -32,7 +32,7 @@
 )
 
 ;; !(buildTree (AND a b))
-!(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
+;; !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 
 ;; function to build a tree with a root node of "ROOT"
 (= (buildTreeWithRoot $expr)
@@ -42,19 +42,22 @@
 ;a function to get the right or left child
 (: getChild (-> Tree String Tree))
 (= (getChild $tree $opt) 
- (case $tree
-     (
-        ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
-         (case $opt
-             (
-                ("L" $leftChild)
-                ("R" $rightChild)
-                ($else "Error: Invalid option: must be 'L' or 'R'")
-             )))
-        (() ())
-     )) )
+  (case $tree
+    (
+      ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
+        (case $opt
+          (
+            ("L" $leftChild)
+            ("R" $rightChild)
+            ($else "Error: Invalid option: must be 'L' or 'R'")
+          )
+        )
+      )
+    )
+  ) 
+)
 
-;!(getChild (buildTree (AND a b)) ())
+;; !(getChild (buildTree (AND a b)) ())
 
 
 (: getNodeChildren (-> Tree TreeList))
@@ -62,6 +65,7 @@
   (case $node
     (
       ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $children )
+      ( $_ NilList)
     )
   )
 )
@@ -71,7 +75,24 @@
   (case $node
     (
       ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $guardSet )
+      ( $_ NilList)
     )
+  )
+)
+
+(: updateNodeGuardSet (-> Tree TreeList Tree))
+(= (updateNodeGuardSet $node $new-guardSet) 
+  (let ($value $left $right $guardSet $children) 
+    $node
+    (TreeNode $value $left $right $new-guardSet $children)
+  )
+)
+
+(: updateNodeValue (-> Tree NodeValue Tree))
+(= (updateNodeValue $tree $newValue)
+  (let ($value $left $right $guardSet $children)
+    $node
+    (TreeNode $newValue $left $right $guardSet $children)
   )
 )
 
