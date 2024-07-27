@@ -41,6 +41,7 @@
     )
 )
 ;; ! (member B (Cons A (Cons B (Cons C Nil))))
+; !(member 1 Nil)
 
 ; Function to remove duplicates from a list
 (: remove-duplicates (-> List List))
@@ -57,6 +58,7 @@
 (: append (-> List List List))
 (= (append Nil $ys) $ys)
 (= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))
+;; !(append (Cons a (Cons b (Cons c Nil))) (Cons c Nil))
 
 ; Function to partition the list
 (: partition (-> Atom List ( List List )))
@@ -150,3 +152,146 @@
     )
 )
 
+;; Test cases
+; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
+; !(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
+
+(: check-not-duplicated (-> List Bool))
+(= (check-not-duplicated $list)
+    (case $list
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (member $x $xs)
+                    False
+                    (check-not-duplicated $xs)
+                )
+            )
+        )
+    )
+)
+
+(: check-not-inverse-duplicated (-> List Bool))
+(= (check-not-inverse-duplicated $list)
+    (case $list
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (member-not $x $xs)
+                    False
+                    (check-not-inverse-duplicated $xs)
+                )
+            )
+        )
+    )
+)
+
+(:intersect (-> List List List List))
+(=(intersect $list1 $list2 $accumulator)
+    (if (or (== $list1 Nil) (== $list2 Nil))
+        $accumulator
+        (case ($list1 $list2)
+            (
+                (((Cons $x $xs) (Cons $y $ys))
+                        (let* (
+                            ($is-x-member (member $x $ys))
+                            ($is-y-member (member $y $xs))
+                            )(if (and (== $is-x-member True) (== $is-y-member True))
+                                (if (== $x $y)
+                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+                                    (intersect $xs $ys (append $accumulator (Cons $x (Cons $y Nil))))
+                                )
+                                (if (and (== $is-x-member True) (== $is-y-member False))
+                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+                                    (if (and (== $is-x-member False) (== $is-y-member True))
+                                        (intersect $xs $ys (append $accumulator (Cons $y Nil)))
+                                        (intersect $xs $ys $accumulator)
+                                    )
+                                )
+
+                            )
+                        )
+
+      
+                )
+            )
+        )
+
+    )
+)
+;; Test cases
+; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
+; !(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
+; !(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+
+(:union-set (->List List List List))
+(= (union-set $list1 $list2)
+    (remove-duplicates (append $list1 $list2))
+)
+;; Test cases
+; !(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
+
+(=(is-subset $list1 $list2)
+    (let* (
+            ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
+                        ))
+
+            ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
+                        ) )
+
+        )(is-subset-ordered $min-list $max-list)
+    )
+   
+)
+;; Test cases
+; !(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
+
+(=(is-subset-ordered $min-list $max-list)
+    (if (== $min-list Nil)
+        True
+        (case $min-list (
+            ((Cons $x $xs)
+                (if (member $x $max-list)
+                    (is-subset-ordered $xs $max-list)
+                    False
+                )
+            )
+
+
+            )
+        )
+    )
+
+)
+
+(=(n-ary-and $exp)
+    (case $exp 
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (== $x True)
+                    (n-ary-and $xs)
+                    False
+                )
+            )
+        )
+    )
+)
+;; Test cases
+; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
+
+(=(n-ary-or $exp)
+    (case $exp 
+        (
+            (Nil False)
+            ((Cons $x $xs)
+                (if (== $x True)
+                    True
+                    (n-ary-or $xs)
+                )
+            )
+        )
+    )
+)
+;; Test cases
+; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
